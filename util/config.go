@@ -3,8 +3,8 @@ package util
 import "github.com/spf13/viper"
 
 type Config struct {
-	NatsURL     string `mapstructure:"NATS_ENDPOINT"`
-	SymbolCount int    `mapstructure:"SYMBOL_COUNT"`
+	RedisEndpoint string `mapstructure:"REDIS_ENDPOINT"`
+	SymbolCount   int    `mapstructure:"SYMBOL_COUNT"`
 }
 
 // LoadConfig loads app.env if it exists and sets envars

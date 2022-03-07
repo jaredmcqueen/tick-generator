@@ -71,6 +71,8 @@ func generateTicks(symbolSet map[string]float64) {
 }
 
 func main() {
+	log.Println("starting tick-generator")
+
 	// load config
 	config, err := util.LoadConfig(".")
 	if err != nil {
@@ -81,9 +83,10 @@ func main() {
 	sigsChan := make(chan os.Signal, 1)
 	signal.Notify(sigsChan, syscall.SIGINT, syscall.SIGTERM)
 
+	log.Println("connecting to redis endpoint", config.RedisEndpoint)
 	ctx = context.Background()
 	rdb = redis.NewClient(&redis.Options{
-		Addr: ":6379",
+		Addr: "config.RedisEndpoint",
 	})
 
 	// clear out the db
