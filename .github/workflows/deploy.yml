@@ -1,0 +1,25 @@
+name: Deploy to production
+
+on:
+  push:
+    branches: [ main ]
+    
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+
+  deploy:
+    name: Build image
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v2
+      
+    - name: print-stuff
+      run: |
+        env
+        pwd
+        ls -lahrt
