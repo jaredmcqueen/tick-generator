@@ -13,7 +13,7 @@ import (
 	"github.com/jaredmcqueen/sherpa/generator/util"
 )
 
-var ctx context.Context
+var ctx = context.Background()
 var rdb *redis.Client
 
 type tick struct {
@@ -24,6 +24,7 @@ type tick struct {
 
 // generateTicks uses TS.MADD to send random ticks to redis
 func generateTicks(symbolSet map[string]float64) {
+	log.Println("starting tick generator")
 	ticker := time.NewTicker(1 * time.Second)
 
 	// TS.MADD requires timeseries keys before use
@@ -71,8 +72,6 @@ func generateTicks(symbolSet map[string]float64) {
 }
 
 func main() {
-	log.Println("starting tick-generator")
-
 	// load config
 	config, err := util.LoadConfig(".")
 	if err != nil {
@@ -84,10 +83,16 @@ func main() {
 	signal.Notify(sigsChan, syscall.SIGINT, syscall.SIGTERM)
 
 	log.Println("connecting to redis endpoint", config.RedisEndpoint)
-	ctx = context.Background()
 	rdb = redis.NewClient(&redis.Options{
-		Addr: "config.RedisEndpoint",
+		Addr: config.RedisEndpoint,
 	})
+
+	// test redis connection
+	_, err = rdb.Ping(ctx).Result()
+	if err != nil {
+		log.Fatal("error", err)
+	}
+	log.Println("successfully connected to", config.RedisEndpoint)
 
 	// clear out the db
 	// TODO: make this an envar
@@ -98,6 +103,7 @@ func main() {
 	symbolSet := make(map[string]float64)
 
 	// fully populate N random symbols
+	// 100 is the starting value
 	for len(symbolSet) < symbolCount {
 		symbolSet[util.RandomSymbol()] = float64(100)
 	}
