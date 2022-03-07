@@ -25,6 +25,6 @@ jobs:
         
     - name: Build and push
       run: |
-        echo ${{ github.token }} | docker login $REGISTRY -u ${{ github.repository_owner }} --password-stdin
+        echo ${{ secrets.BUILD_PAT }} | docker login $REGISTRY -u ${{ github.repository_owner }} --password-stdin
         docker build . -t $REGISTRY/${{ github.repository}}:latest
         docker push $REGISTRY/${{ github.repository}}:latest
