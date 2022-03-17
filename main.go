@@ -20,9 +20,17 @@ var counter int32
 // generateTicks uses TS.MADD to send random ticks to redis
 func generateTicks(config util.Config) {
 	ctx := context.Background()
+	fmt.Printf("connecting to %v\n", config.RedisEndpoint)
 	rdb := redis.NewClient(&redis.Options{
 		Addr: config.RedisEndpoint,
 	})
+	r, err := rdb.Ping(ctx).Result()
+	fmt.Printf("%v successfully connected\n", r)
+	if err != nil {
+		log.Panic(err)
+	}
+
+	fmt.Println("clearing out DB")
 	rdb.FlushAll(ctx)
 
 	// rdb := redis.NewClusterClient(&redis.ClusterOptions{
