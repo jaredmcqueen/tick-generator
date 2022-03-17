@@ -15,9 +15,6 @@ import (
 	"github.com/jaredmcqueen/sherpa/generator/util"
 )
 
-var ctx = context.Background()
-var rdb *redis.Client
-
 type tick struct {
 	Time   time.Time `json:"time"`
 	Symbol string    `json:"symbol"`
@@ -28,7 +25,20 @@ var counter int32
 
 // generateTicks uses TS.MADD to send random ticks to redis
 func generateTicks() {
-	symbolCount := 1000
+	ctx := context.Background()
+	rdb := redis.NewClient(&redis.Options{
+		Addr: "localhost:6379",
+	})
+
+	// rdb := redis.NewClusterClient(&redis.ClusterOptions{
+	// 	Addrs: []string{":4000", ":4001", ":4002", ":4003", ":4004", ":4005"},
+	// 	// Username: "bitnami",
+	// 	Password: "bitnami",
+	// 	// RouteByLatency: true,
+	// 	// RouteRandomly:  true,
+	// })
+	pipe := rdb.Pipeline()
+	symbolCount := 5_000
 	symbolSet := make(map[string]float64)
 
 	for len(symbolSet) < symbolCount {
@@ -36,42 +46,66 @@ func generateTicks() {
 	}
 
 	log.Println("starting tick generator")
-	// ticker := time.NewTicker(1 * time.Second)
+	ticker := time.NewTicker(1 * time.Second)
 
 	for {
-		// select {
-		// case t := <-ticker.C:
+		select {
+		case <-ticker.C:
+			start := time.Now()
 
-		// create a redis pipeline to reduce network traffic
-		// pipe := rdb.Pipeline()
-		// var values map[string]string
+			// create a redis pipeline to reduce network traffic
+			// pipe := rdb.Pipeline()
+			// var values map[string]string
 
-		// iterate through all the values in the symbolSet
-		for k, v := range symbolSet {
-			// enqueue an XADD operation on the pipeline
+			// iterate through all the values in the symbolSet
+			myCounter := 0
+			for i := 0; i < 15; i++ {
+				for k, v := range symbolSet {
+					// enqueue an XADD operation on the pipeline
 
-			// log.Println(k, v, t)
-			// values["t"] = t
-			// values["symbol"] = k
-			// values["close"] = strconv.FormatFloat(v, 'f', -1, 64)
-			values := map[string]string{
-				"uno":    "dos",
-				"symbol": k,
-				"close":  strconv.FormatFloat(v, 'f', -1, 64),
+					// log.Println(k, v, t)
+					// values["t"] = t
+					// values["symbol"] = k
+					// values["close"] = strconv.FormatFloat(v, 'f', -1, 64)
+					values := map[string]string{
+						"uno":    "dos",
+						"symbol": k,
+						"close":  strconv.FormatFloat(v, 'f', -1, 64),
+					}
+
+					// log.Println(k, v)
+					_ = values
+
+					pipe.XAdd(ctx, &redis.XAddArgs{
+						Stream: k,
+						ID:     "*",
+						Values: values,
+					})
+					// fmt.Println("err", err)
+					// fmt.Println("r", r)
+					symbolSet[k] = util.RandomPrice(v)
+					atomic.AddInt32(&counter, 1)
+					myCounter++
+
+					if myCounter > 10_000-1 {
+						pipe.Exec(ctx)
+						myCounter = 0
+						fmt.Println("counter hit")
+					}
+				}
 			}
+			pipe.Exec(ctx)
+			fmt.Printf("%v inserts complete in %v ms\n", myCounter, time.Since(start).Milliseconds())
+			// if err != nil {
+			// 	log.Println(err)
+			// }
+			// log.Println(results)
+			//
+			// for r := range results {
+			// 	log.Println(r)
+			// }
 
-			// log.Println(k, v)
-			_ = values
-
-			// pipe.XAdd(ctx, &redis.XAddArgs{
-			// 	Stream: "ticks",
-			// 	ID:     "*",
-			// 	Values: values,
-			// })
-			symbolSet[k] = util.RandomPrice(v)
-			atomic.AddInt32(&counter, 1)
 		}
-
 		// log.Println((t.UnixMilli()))
 		// start := time.Now()
 		// pipe.Exec(ctx)
