@@ -5,6 +5,9 @@ import "github.com/spf13/viper"
 type Config struct {
 	RedisEndpoint string `mapstructure:"REDIS_ENDPOINT"`
 	SymbolCount   int    `mapstructure:"SYMBOL_COUNT"`
+	Multiplyer    int    `mapstructure:"MULTIPLYER"`
+	PayloadSize   int    `mapstructure:"PAYLOADSIZE"`
+	Workers       int    `mapstructure:"WORKERS"`
 }
 
 // LoadConfig loads app.env if it exists and sets envars
