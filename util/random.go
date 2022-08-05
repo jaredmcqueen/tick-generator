@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	alphabet = "abcdefghijklmnopqrstuvwxyz"
+	alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 )
 
 func init() {

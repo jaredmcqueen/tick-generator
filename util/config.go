@@ -1,17 +1,28 @@
 package util
 
-import "github.com/spf13/viper"
+import (
+	"log"
 
-type Config struct {
+	"github.com/spf13/viper"
+)
+
+type Envars struct {
 	RedisEndpoint string `mapstructure:"REDIS_ENDPOINT"`
 	SymbolCount   int    `mapstructure:"SYMBOL_COUNT"`
-	Multiplyer    int    `mapstructure:"MULTIPLYER"`
-	PayloadSize   int    `mapstructure:"PAYLOADSIZE"`
-	Workers       int    `mapstructure:"WORKERS"`
+}
+
+var Config Envars
+
+func init() {
+	config, err := loadConfig(".")
+	if err != nil {
+		log.Fatal("cannot load configuration", err)
+	}
+	Config = config
 }
 
 // LoadConfig loads app.env if it exists and sets envars
-func LoadConfig(path string) (config Config, err error) {
+func loadConfig(path string) (config Envars, err error) {
 	viper.AddConfigPath(path)
 	viper.SetConfigName("app")
 	viper.SetConfigType("env")
