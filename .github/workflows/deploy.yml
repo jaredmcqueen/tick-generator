@@ -1,14 +1,14 @@
+---
 name: Deploy to production
 
 on:
   push:
-    branches: [ main ]
-    
+    branches: [main]
+
 env:
   REGISTRY: ghcr.io
-    
-jobs:
 
+jobs:
   deploy:
     name: Build image
     runs-on: ubuntu-latest
@@ -17,17 +17,17 @@ jobs:
       packages: write
 
     steps:
-    - name: Check out code
-      uses: actions/checkout@v2
-      
-    - name: print-stuff
-      run: |
-        env
-        pwd
-        ls -lahrt
-        
-    - name: Build and push
-      run: |
-        echo ${{ github.token }} | docker login $REGISTRY -u ${{ github.repository_owner }} --password-stdin
-        docker build . -t $REGISTRY/${{ github.repository}}:latest
-        docker push $REGISTRY/${{ github.repository}}:latest
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: print-stuff
+        run: |
+          env
+          pwd
+          ls -lahrt
+
+      - name: Build and push
+        run: |
+          echo ${{ github.token }} | docker login $REGISTRY -u ${{ github.repository_owner }} --password-stdin
+          docker build . -t $REGISTRY/${{ github.repository}}:latest
+          docker push $REGISTRY/${{ github.repository}}:latest
