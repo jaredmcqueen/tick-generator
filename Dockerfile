@@ -8,6 +8,5 @@ RUN go build -o main main.go
 FROM alpine:latest as deploy
 WORKDIR /app
 COPY --from=builder /app/main .
-COPY app.env .
 
 ENTRYPOINT [ "/app/main" ]

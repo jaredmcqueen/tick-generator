@@ -3,7 +3,9 @@ name: Deploy to production
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
+      - dev
 
 env:
   REGISTRY: ghcr.io
